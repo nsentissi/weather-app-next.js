@@ -8,6 +8,7 @@ import Image from "next/image";
 import Container from "@/components/Container";
 import { useQuery } from "react-query";
 import WeatherIcon from "@/components/WeatherIcon";
+import { getDayOrNightIcon } from "@/utils/getDayOrNightIcon";
 
 type WeatherData = {
   cod: string;
@@ -83,7 +84,7 @@ export default function Home() {
     "repoData",
     async () => {
       const { data } = await axios.get(
-        `https://api.openweathermap.org/data/2.5/forecast?q=Hamburg&appid=${process.env.NEXT_PUBLIC_WEATHER_KEY}&cnt=56`
+        `https://api.openweathermap.org/data/2.5/forecast?q=Dakar&appid=${process.env.NEXT_PUBLIC_WEATHER_KEY}&cnt=56`
       );
       return data;
     }
@@ -141,7 +142,7 @@ export default function Home() {
                       {format(parseISO(data.dt_txt), "h:mm a")}
                     </p>
                     
-                    <WeatherIcon iconName={data.weather[0].icon} />
+                    <WeatherIcon iconName={getDayOrNightIcon(data.weather[0].icon, data.dt_txt )} />
                     <p> {tempConverter(firstData?.main.temp ?? 0)}°</p>
                   </div>
                 ))}
@@ -149,7 +150,10 @@ export default function Home() {
             </Container>
           </div>
         </section>
-        <section></section>
+        <section className="flex w-full flex-col gap-4">
+
+          <p className="text-2xl">Forecast (7 days)</p>
+        </section>
       </main>
     </div>
   );
