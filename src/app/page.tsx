@@ -2,13 +2,15 @@
 
 import Navbar from "@/components/Navbar";
 import axios from "axios";
-import { format } from "date-fns";
+import { format, fromUnixTime } from "date-fns";
 import { parseISO } from "date-fns";
 import Image from "next/image";
 import Container from "@/components/Container";
 import { useQuery } from "react-query";
 import WeatherIcon from "@/components/WeatherIcon";
 import { getDayOrNightIcon } from "@/utils/getDayOrNightIcon";
+import WeatherDetails from "@/components/WeatherDetails";
+import { metersToKilometers } from "@/utils/meterToKilometers";
 
 type WeatherData = {
   cod: string;
@@ -141,17 +143,45 @@ export default function Home() {
                     <p className="whitespace-nowrap">
                       {format(parseISO(data.dt_txt), "h:mm a")}
                     </p>
-                    
-                    <WeatherIcon iconName={getDayOrNightIcon(data.weather[0].icon, data.dt_txt )} />
+
+                    <WeatherIcon
+                      iconName={getDayOrNightIcon(
+                        data.weather[0].icon,
+                        data.dt_txt
+                      )}
+                    />
                     <p> {tempConverter(firstData?.main.temp ?? 0)}°</p>
                   </div>
                 ))}
               </div>
             </Container>
           </div>
+          <div className="flex gap-4">
+            <Container className="w-fit justify-center flex-col px-4 items-center">
+              <p className="capitalize text-center">
+                {" "}
+                {firstData?.weather[0].description}
+              </p>
+              <WeatherIcon
+                iconName={getDayOrNightIcon(
+                  firstData?.weather[0].icon ?? "",
+                  firstData?.dt_txt ?? ""
+                )}
+              />
+            </Container>
+            <Container className="bg-yellow-300/80 px-6 gap-4 justify-between overflow-x-auto">
+              <WeatherDetails
+                visibility={metersToKilometers(firstData?.visibility ?? 10000)}
+                airPressure={`${firstData?.main.pressure} hpa`}
+                humidity={`${firstData?.main.humidity}%`}
+                sunrise={data?.city?.sunrise ? format(fromUnixTime(data.city.sunrise), "H:mm") : 'Unavailable'}
+                sunset={data?.city?.sunset ? format(fromUnixTime(data.city.sunrise), "H:mm") : 'Unavailable'}
+                windSpeed=""
+              />
+            </Container>
+          </div>
         </section>
         <section className="flex w-full flex-col gap-4">
-
           <p className="text-2xl">Forecast (7 days)</p>
         </section>
       </main>
