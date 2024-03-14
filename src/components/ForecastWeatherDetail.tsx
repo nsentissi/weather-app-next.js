@@ -1,7 +1,7 @@
 import React from "react";
 import Container from "./Container";
 import WeatherIcon from "./WeatherIcon";
-import { WeatherDetailProps } from "./WeatherDetails";
+import WeatherDetails, { WeatherDetailProps } from "./WeatherDetails";
 
 export interface ForecastWeatherDetailProps extends WeatherDetailProps {
   weatherIcon: string;
@@ -51,8 +51,8 @@ const tempConverter = (temp: number) => {
         </div>
       </section>
 
-      <section>
-        
+      <section className="overflow-x-auto flex justify-between gap-4 px-4 w-full pr-10">
+        <WeatherDetails {...props} />
       </section>
     </Container>
   );

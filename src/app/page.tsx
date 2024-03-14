@@ -12,6 +12,8 @@ import { getDayOrNightIcon } from "@/utils/getDayOrNightIcon";
 import WeatherDetails from "@/components/WeatherDetails";
 import { metersToKilometers } from "@/utils/meterToKilometers";
 import { convertWindSpeed } from "@/utils/convertWindSpeed";
+import ForecastWeatherDetail from "@/components/ForecastWeatherDetail";
+import { unique } from "next/dist/build/utils";
 
 type WeatherData = {
   cod: string;
@@ -81,7 +83,6 @@ type Coord = {
   lat: number;
   lon: number;
 };
-
 export default function Home() {
   const { isLoading, error, data } = useQuery<WeatherData>(
     "repoData",
@@ -100,7 +101,21 @@ export default function Home() {
 
   const firstData = data?.list[1];
 
-  console.log(data);
+  const uniqueDates = [
+    ...new Set(
+      data?.list.map(
+        (entry) => new Date(entry.dt * 1000).toISOString().split("T")[0]
+      )
+    ),
+  ];
+
+  const firstDataForEachDate = uniqueDates.map((date) => {
+    return data?.list.find((entry) => {
+      const entryDate = new Date(entry.dt * 1000).toISOString().split("T")[0];
+      const entryTime = new Date(entry.dt * 1000).getHours();
+      return entryDate === date && entryTime >= 6;
+    });
+  });
 
   if (isLoading)
     return (
@@ -116,9 +131,9 @@ export default function Home() {
         <section className="space-y-4">
           <div className="space-y-2">
             <h2 className="flex gap-1 text-2xl items-end">
-              <p>{format(parseISO(firstData?.dt_txt ?? ""), "EEEE")}</p>
+              <p>{ firstData?.dt_txt ? format(parseISO(firstData?.dt_txt ?? ""), "EEEE") : 'unavailable'}</p>
               <p className="text-lg">
-                ({format(parseISO(firstData?.dt_txt ?? ""), "dd.MM.yyyy")})
+                ({ firstData?.dt_txt ? format(parseISO(firstData?.dt_txt ?? ""), "dd.MM.yyyy") : 'unavailable' })
               </p>
             </h2>
             <Container className="gap-10 px-6 items-center">
@@ -175,15 +190,46 @@ export default function Home() {
                 visibility={metersToKilometers(firstData?.visibility ?? 10000)}
                 airPressure={`${firstData?.main.pressure} hpa`}
                 humidity={`${firstData?.main.humidity}%`}
-                sunrise={data?.city?.sunrise ? format(fromUnixTime(data.city.sunrise), "H:mm") : 'Unavailable'}
-                sunset={data?.city?.sunset ? format(fromUnixTime(data.city.sunrise), "H:mm") : 'Unavailable'}
-                windSpeed={ firstData?.wind?.speed  ?  convertWindSpeed(firstData?.wind.speed) : 'Unavailable'}
+                sunrise={
+                  data?.city?.sunrise
+                    ? format(fromUnixTime(data.city.sunrise), "H:mm")
+                    : "Unavailable"
+                }
+                sunset={
+                  data?.city?.sunset
+                    ? format(fromUnixTime(data.city.sunrise), "H:mm")
+                    : "Unavailable"
+                }
+                windSpeed={
+                  firstData?.wind?.speed
+                    ? convertWindSpeed(firstData?.wind.speed)
+                    : "Unavailable"
+                }
               />
             </Container>
           </div>
         </section>
         <section className="flex w-full flex-col gap-4">
           <p className="text-2xl">Forecast (7 days)</p>
+          {firstDataForEachDate.map((listItem, index) => (
+           <ForecastWeatherDetail 
+           key={index}
+           description={listItem?.weather[0].description ?? ''}
+           weatherIcon={listItem?.weather[0].icon ?? ''}
+           date={listItem?.dt_txt ? format(parseISO(listItem?.dt_txt), "dd.MM") : ''}
+           day={listItem?.dt_txt ? format(parseISO(listItem?.dt_txt), "EEEE") : ''}
+           feels_like={listItem?.main.feels_like ?? 0}
+           temp={listItem?.main.temp ?? 0}
+           temp_max={listItem?.main.temp_max ?? 0}
+           temp_min={listItem?.main.temp_min ?? 0}
+           airPressure={`${listItem?.main.pressure} hPa`}
+           humidity={`${listItem?.main.humidity}%`}
+           sunrise={data?.city ? format(fromUnixTime(data.city.sunrise), 'H:mm') : 'Unavailable'}
+           sunset={data?.city ? format(fromUnixTime(data.city.sunset), 'H:mm') : 'Unavailable'}
+           visibility={`${metersToKilometers(listItem?.visibility ?? 0)} km`}
+           windSpeed={`${convertWindSpeed(listItem?.wind.speed ?? 0)} km/h`}
+         />
+          ))}
         </section>
       </main>
     </div>
