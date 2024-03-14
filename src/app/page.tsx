@@ -11,6 +11,7 @@ import WeatherIcon from "@/components/WeatherIcon";
 import { getDayOrNightIcon } from "@/utils/getDayOrNightIcon";
 import WeatherDetails from "@/components/WeatherDetails";
 import { metersToKilometers } from "@/utils/meterToKilometers";
+import { convertWindSpeed } from "@/utils/convertWindSpeed";
 
 type WeatherData = {
   cod: string;
@@ -176,7 +177,7 @@ export default function Home() {
                 humidity={`${firstData?.main.humidity}%`}
                 sunrise={data?.city?.sunrise ? format(fromUnixTime(data.city.sunrise), "H:mm") : 'Unavailable'}
                 sunset={data?.city?.sunset ? format(fromUnixTime(data.city.sunrise), "H:mm") : 'Unavailable'}
-                windSpeed=""
+                windSpeed={ firstData?.wind?.speed  ?  convertWindSpeed(firstData?.wind.speed) : 'Unavailable'}
               />
             </Container>
           </div>
