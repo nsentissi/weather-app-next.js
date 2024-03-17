@@ -6,18 +6,19 @@ import { MdWbSunny, MdOutlineMyLocation } from "react-icons/md";
 import { TbLocation } from "react-icons/tb";
 import SearchBox from "./SearchBox";
 import axios from "axios";
-import { placeAtom } from "@/app/atom";
+import { loadingCityAtom, placeAtom } from "@/app/atom";
 import { useAtom } from "jotai";
 
-type Props = {};
+type Props = { location?: string };
 
-export default function Navbar({}: Props) {
+export default function Navbar({ location }: Props) {
   const [city, setCity] = useState("");
   const [error, setError] = useState("");
 
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setshowSuggestions] = useState(false);
   const [place, setPlace] = useAtom(placeAtom);
+  const [_, setLoadingCity] = useAtom(loadingCityAtom);
 
   async function handleInputChange(value: string) {
     setCity(value);
@@ -47,13 +48,18 @@ export default function Navbar({}: Props) {
   }
 
   function handleSubmitSearch(e: React.FormEvent<HTMLFormElement>) {
+    setLoadingCity(true);
     e.preventDefault();
     if (suggestions.length == 0) {
       setError("location not found");
+      setLoadingCity(false);
     } else {
       setError("");
-      setPlace(city);
-      setshowSuggestions(false);
+      setTimeout(() => {
+        setLoadingCity(false);
+        setPlace(city);
+        setshowSuggestions(false);
+      }, 500);
     }
   }
 
@@ -67,7 +73,7 @@ export default function Navbar({}: Props) {
         <section className="flex gap-4 items-center">
           <MdOutlineMyLocation className="text-2xl text-gray-400 hover:opacity-80 cursor-pointer" />
           <TbLocation className="text-2xl text-gray-400 hover:opacity-80 cursor-pointer" />
-          <p className="text-slate-900/80 text-sm">Morocco</p>
+          <p className="text-slate-900/80 text-sm">{location}</p>
           <div className="relative">
             <SearchBox
               value={city}
